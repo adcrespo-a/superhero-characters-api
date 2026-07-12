@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Character Details</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <a href="index.html"><strong>Superhero Characters</strong></a>
+    <nav>
+      <a href="index.html">Gallery</a>
+      <a href="new-character-form.html">Create New Character</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <p><a href="index.html" class="btn btn-secondary">&larr; Back to Gallery</a></p>
+    <div id="content">Loading…</div>
+  </main>
+
+  <footer>CSC340 Project</footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const content = document.getElementById("content");
+
+    async function loadCharacter() {
+      if (!id) {
+        content.innerHTML = "<p>No character id provided.</p>";
+        return;
+      }
+      try {
+        const character = await getCharacterById(id);
+        content.innerHTML = `
+          <div class="details-layout">
+            <img src="${character.imageUrl}" alt="${character.name}" />
+            <div class="details-info">
+              <span class="badge">${character.category}</span>
+              <h1>${character.name}</h1>
+              <p>${character.description}</p>
+              <div class="actions">
+                <a href="new-character-form.html?id=${character.characterId}" class="btn">Edit</a>
+                <button class="btn btn-danger" id="deleteBtn">Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById("deleteBtn").addEventListener("click", async () => {
+          if (!confirm(`Delete ${character.name}? This can't be undone.`)) return;
+          try {
+            await deleteCharacter(character.characterId);
+            window.location.href = "index.html";
+          } catch (err) {
+            alert("Could not delete character.");
+            console.error(err);
+          }
+        });
+      } catch (err) {
+        content.innerHTML = "<p>Character not found.</p>";
+        console.error(err);
+      }
+    }
+
+    loadCharacter();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Create Character</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <a href="index.html"><strong>Superhero Characters</strong></a>
+    <nav>
+      <a href="index.html">Gallery</a>
+      <a href="new-character-form.html">Create New Character</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1 id="formHeading">Create New Character</h1>
+
+    <form id="characterForm">
+      <label for="name">Name</label>
+      <input type="text" id="name" required />
+
+      <label for="category">Category</label>
+      <input type="text" id="category" placeholder="e.g. Marvel, DC" required />
+
+      <label for="imageUrl">Image URL</label>
+      <input type="url" id="imageUrl" required />
+
+      <label for="description">Description</label>
+      <textarea id="description" required></textarea>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn" id="submitBtn">Save Character</button>
+        <a href="index.html" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </main>
+
+  <footer>CSC340 Project</footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("id");
+    const form = document.getElementById("characterForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    if (editId) {
+      document.getElementById("pageTitle").textContent = "Update Character";
+      document.getElementById("formHeading").textContent = "Update Character";
+      document.getElementById("submitBtn").textContent = "Update Character";
+
+      getCharacterById(editId)
+        .then((character) => {
+          document.getElementById("name").value = character.name;
+          document.getElementById("category").value = character.category;
+          document.getElementById("imageUrl").value = character.imageUrl;
+          document.getElementById("description").value = character.description;
+        })
+        .catch((err) => {
+          errorMsg.textContent = "Could not load character to edit.";
+          errorMsg.style.display = "block";
+          console.error(err);
+        });
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.style.display = "none";
+
+      const character = {
+        name: document.getElementById("name").value.trim(),
+        category: document.getElementById("category").value.trim(),
+        imageUrl: document.getElementById("imageUrl").value.trim(),
+        description: document.getElementById("description").value.trim(),
+      };
+
+      try {
+        if (editId) {
+          await updateCharacter(editId, character);
+          window.location.href = `details.html?id=${editId}`;
+        } else {
+          const created = await createCharacter(character);
+          window.location.href = `details.html?id=${created.characterId}`;
+        }
+      } catch (err) {
+        errorMsg.textContent = "Something went wrong saving the character. Check all fields and try again.";
+        errorMsg.style.display = "block";
+        console.error(err);
+      }
+    });
+  </script>
+
+</body>
+</html>
