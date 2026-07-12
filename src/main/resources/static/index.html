@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Superhero Characters</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <a href="index.html"><strong>Superhero Characters</strong></a>
+    <nav>
+      <a href="index.html">Gallery</a>
+      <a href="new-character-form.html">Create New Character</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Superhero List</h1>
+    <p class="subtitle">Heroes from across comics and movies.</p>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by name…" />
+      <button class="btn" id="searchBtn">Search</button>
+      <button class="btn btn-secondary" id="clearBtn">Clear</button>
+    </div>
+
+    <div class="cards" id="cardContainer"></div>
+    <p class="empty-msg" id="emptyMsg" style="display:none;">No characters found.</p>
+  </main>
+
+  <footer>CSC340 Project</footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    const cardContainer = document.getElementById("cardContainer");
+    const emptyMsg = document.getElementById("emptyMsg");
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    function renderCharacters(characters) {
+      cardContainer.innerHTML = "";
+      emptyMsg.style.display = characters.length === 0 ? "block" : "none";
+
+      characters.forEach((character) => {
+        const card = document.createElement("a");
+        card.className = "card";
+        card.href = `details.html?id=${character.characterId}`;
+
+        card.innerHTML = `
+          <img src="${character.imageUrl}" alt="${character.name}" />
+          <div class="card-body">
+            <span class="badge">${character.category}</span>
+            <h3>${character.name}</h3>
+            <p>${character.description}</p>
+          </div>
+        `;
+        cardContainer.appendChild(card);
+      });
+    }
+
+    async function loadAllCharacters() {
+      try {
+        const characters = await getAllCharacters();
+        renderCharacters(characters);
+      } catch (err) {
+        cardContainer.innerHTML = `<p class="empty-msg">Could not load characters. Is the API running?</p>`;
+        console.error(err);
+      }
+    }
+
+    searchBtn.addEventListener("click", async () => {
+      const query = searchInput.value.trim();
+      if (!query) {
+        loadAllCharacters();
+        return;
+      }
+      try {
+        const results = await searchCharactersByName(query);
+        renderCharacters(results);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchBtn.click();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      loadAllCharacters();
+    });
+
+    loadAllCharacters();
+  </script>
+
+</body>
+</html>
